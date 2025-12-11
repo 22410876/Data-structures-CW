@@ -38,7 +38,7 @@ def list_contacts():
   if not contacts:
     print("No contacts found.\n")
     return
-  for i, c inenumerate(contacts, start=1):
+  for i, c in enumerate(contacts, start=1):
     print(f"{i}. {c['name']} - {c['phone']} - {c['email']} - {c['address']}")
   print()
 
@@ -78,28 +78,27 @@ def delete_contact():
 def main():
   while True:
     print("===== CONTACTS APP =====")
-        print("===== CONTACTS APP =====")
-        print("1. Add Contact")
-        print("2. List All Contacts")
-        print("3. Search Contacts")
-        print("4. Delete Contact")
-        print("5. Quit")
+    print("1. Add Contact")
+    print("2. List All Contacts")
+    print("3. Search Contacts")
+    print("4. Delete Contact")
+    print("5. Quit")
 
-        choice = input("Choose an option: ")
+    choice = input("Choose an option: ")
 
-        if choice == "1":
-            add_contact()
-        elif choice == "2":
-            list_contacts()
-        elif choice == "3":
-            search_contacts()
-        elif choice == "4":
-            delete_contact()
-        elif choice == "5":
-            print("Goodbye!")
-            break
-        else:
-            print("Invalid choice, try again.\n")
+    if choice == "1":
+        add_contact()
+    elif choice == "2":
+        list_contacts()
+    elif choice == "3":
+        search_contacts()
+    elif choice == "4":
+        delete_contact()
+    elif choice == "5":
+        print("Goodbye!")
+        break
+    else:
+        print("Invalid choice, try again.\n")
 
 
 if __name__ == "__main__":
