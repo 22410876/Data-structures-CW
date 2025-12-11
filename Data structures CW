@@ -1,109 +1,121 @@
-import json
-import os
+def menu():
+    contacts = Contacts()
 
-CONTACTS_FILE = "contacts.json"
+    while True:
+        print("\n--- CONTACTS MENU ---")
+        print("1. Add contact")
+        print("2. Search contact (exact)")
+        print("3. Search contact (contains)")
+        print("4. Delete contact")
+        print("5. Quit")
 
-def load_contacts():
-  if not os.path.exists(CONTACTS_FILE):
-    return []
-  with open(CONTACTS_FILE, "r") as f:
-    return json.load(f)
+        choice = input("Choose option: ")
 
-def save_contacts(contacts):
-  with open(CONTACTS_FILE, "w") as f:
-    json.dump(contacts, f, indent=4)
+        if choice == "1":
+            name = input("Name: ")
+            phone = input("Phone: ")
+            email = input("Email: ")
+            address = input("Address: ")
+            contacts.add_contact(name, phone, email, address)
+            print("Contact added!")
+        
+        elif choice == "2":
+            field = input("Field (name/phone/email/address): ")
+            key = input("Search value: ")
+            result = contacts.search_exact(field, key)
+            print(result or "Not found.")
+        
+        elif choice == "3":
+            term = input("Search text: ")
+            results = contacts.search_any(term)
+            print(results or "No matches.")
+        
+        elif choice == "4":
+            name = input("Name to delete: ")
+            deleted = contacts.delete_contact(name)
+            print("Deleted." if deleted else "Name not found.")
+        
+        elif choice == "5":
+            break
 
-def add_contact():
-  print("\n--- Add New Contact ---")
-  name = input("Name: ")
-  phone = input("Phone Number: ")
-  email = input("Email: ")
-  address = input("Address: ")
-
-  contacts = load_contacts()
-  contacts.append({
-    "name": name,
-    "phone": phone,
-    "email": email,
-    "address": address,
-  })
-  save_contacts(contacts)
-
-  print("Contact added successfully!\n")
-
-def list_contacts():
-  print("\n--- All Contacts ---")
-  contacts = load_contacts()
-
-  if not contacts:
-    print("No contacts found.\n")
-    return
-  for i, c in enumerate(contacts, start=1):
-    print(f"{i}. {c['name']} - {c['phone']} - {c['email']} - {c['address']}")
-  print()
-
-def search_contacts():
-  print("\n--- Search Contacts ---")
-  query = input("Enter search term (name, phone, email, address): ").lower()
-
-  contacts = load_contacts()
-  results = []
-
-  for contact in contacts:
-    if any(query in str(value).lower() for value in contact.values()):
-      results.append(contact)
-  if not results:
-    print("No matching contacts found.\n")
-    return
-  print(f"\nFound {len(results)} match(es):")
-  for c in results:
-    print(f"• {c['name']} - {c['phone']} - {c['email']} - {c['address']}")
-  print()
-
-def delete_contact():
-  print("\n--- Delete Contact ---")
-  name = input("Enter the name of the contact to delete: ").lower()
-
-  contacts = load_contacts()
-  updated_contacts = [c for c in contacts if c["name"].lower() != name]
-
-  if len(updated_contacts) == len(contacts):
-    print("No contacts found with that name.\n")
-    return
-
-  save_contacts(updated_contacts)
-  print("Contact deleted successfully!\n")
+        else:
+            print("Invalid option.")
 
 
-def main():
-  while True:
-    print("===== CONTACTS APP =====")
-    print("1. Add Contact")
-    print("2. List All Contacts")
-    print("3. Search Contacts")
-    print("4. Delete Contact")
-    print("5. Quit")
 
-    choice = input("Choose an option: ")
+class Contacts:
+    def __init__(self):
+        # Primary storage by name
+        # average O(1) insertion, lookup, deletion
+        self.by_name = {}
 
-    if choice == "1":
-        add_contact()
-    elif choice == "2":
-        list_contacts()
-    elif choice == "3":
-        search_contacts()
-    elif choice == "4":
-        delete_contact()
-    elif choice == "5":
-        print("Goodbye!")
-        break
-    else:
-        print("Invalid choice, try again.\n")
+        # Secondary indexes
+        # These all allow O(1) exact lookups
+        self.by_phone = {}
+        self.by_email = {}
+        self.by_address = {}
 
+    # --------------------------------------------------
+    # ADD CONTACT  — O(1)
+    # --------------------------------------------------
+    def add_contact(self, name, phone, email, address):
+        contact = {
+            "name": name,
+            "phone": phone,
+            "email": email,
+            "address": address
+        }
 
+        self.by_name[name] = contact
+        self.by_phone[phone] = contact
+        self.by_email[email] = contact
+        self.by_address[address] = contact
+
+    # --------------------------------------------------
+    # SEARCH (Exact Lookup)  — O(1)
+    # --------------------------------------------------
+    def search_exact(self, field_type, key):
+        if field_type == "name":
+            return self.by_name.get(key)
+        elif field_type == "phone":
+            return self.by_phone.get(key)
+        elif field_type == "email":
+            return self.by_email.get(key)
+        elif field_type == "address":
+            return self.by_address.get(key)
+        else:
+            return None
+
+    # --------------------------------------------------
+    # SEARCH (Full Text / Contains)  — O(n)
+    # --------------------------------------------------
+    def search_any(self, substring):
+        substring = substring.lower()
+        matches = []
+
+        for contact in self.by_name.values():  # O(n)
+            if any(substring in str(value).lower() for value in contact.values()):
+                matches.append(contact)
+
+        return matches
+
+    # --------------------------------------------------
+    # DELETE CONTACT — O(1)
+    # --------------------------------------------------
+    def delete_contact(self, name):
+        if name not in self.by_name:
+            return False
+
+        contact = self.by_name.pop(name)
+
+        # Remove from secondary indexes (all O(1))
+        self.by_phone.pop(contact["phone"], None)
+        self.by_email.pop(contact["email"], None)
+        self.by_address.pop(contact["address"], None)
+
+        return True
 if __name__ == "__main__":
-  main()
-
+    menu()
 
 
 
